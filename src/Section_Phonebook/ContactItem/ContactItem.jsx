@@ -4,13 +4,17 @@ import {
   MdDelete,
 } from 'react-icons/md';
 
-import { boy, girl, unknown_gender } from '@/assets/avatar/avatar';
+import { boy, girl, unknown_gender } from '@/assets/images/avatar/avatar';
 import {
   ContactCard,
   AvatarImg,
   ContactDetails,
   ContactActions,
-} from '@/components/Section_Phonebook/ContactItem/ContactItem.styled';
+} from '@/Section_Phonebook/ContactItem/ContactItem.styled';
+
+import { toggleFavorite } from '@/redux/contactsSlice.js';
+import { useDispatch } from 'react-redux';
+import { useCallback } from 'react';
 
 const ContactItem = ({
   id,
@@ -19,11 +23,17 @@ const ContactItem = ({
   phoneNumber,
   gender,
   deleteContact,
-  toggleFavourite,
-  isFavourite,
+  isFavorite,
 }) => {
+  const dispatch = useDispatch();
+
   const imgSrc =
     gender === 'male' ? boy : gender === 'female' ? girl : unknown_gender;
+
+  const handleToggleFavorite = useCallback(() => {
+    dispatch(toggleFavorite(id));
+  }, [dispatch, id]);
+
   return (
     <ContactCard>
       <AvatarImg src={imgSrc} alt="avatar image"></AvatarImg>
@@ -43,9 +53,9 @@ const ContactItem = ({
           type="button"
           className="btn-favorite"
           aria-label="Add to favorites"
-          onClick={() => toggleFavourite(id)}
+          onClick={handleToggleFavorite}
         >
-          {isFavourite ? <MdOutlineFavorite /> : <MdOutlineFavoriteBorder />}
+          {isFavorite ? <MdOutlineFavorite /> : <MdOutlineFavoriteBorder />}
         </button>
 
         <button

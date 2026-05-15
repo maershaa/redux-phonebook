@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import { Article } from '@/components/Section_Phonebook/PhonebookArticle/PhonebookArticle.styled';
+import { Article } from '@/Section_Phonebook/PhonebookArticle/PhonebookArticle.styled';
 
 const PhonebookArticle = ({ subtitle, children }) => {
   return (
@@ -8,11 +7,6 @@ const PhonebookArticle = ({ subtitle, children }) => {
       {children}
     </Article>
   );
-};
-
-PhonebookArticle.propTypes = {
-  subtitle: PropTypes.number.isRequired, //!проверка чтобы знать как будет выглядеть ошибка.  надо string
-  children: PropTypes.node.isRequired,
 };
 
 export { PhonebookArticle };

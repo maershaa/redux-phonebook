@@ -12,7 +12,7 @@ import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { isPossiblePhoneNumber } from 'react-phone-number-input';
 
-const ContactForm = () => {
+const ContactForm = ({ addContact }) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -21,20 +21,23 @@ const ContactForm = () => {
   const [phoneTouched, setPhoneTouched] = useState(false); //коснулся ли пользователь поля телефона. Нужно, чтобы показывать ошибки или красную рамку только после того, как пользователь начал ввод.
 
   const handleFormChange = e => {
-    console.log(e.target.value);
-    //это универсальная функция может обновлять любое поле формы, не нужно писать отдельный обработчик для каждого <input>
-    // !!!!const { name, value } = e.target;
-    // this.setState({
-    //   [name]: value,
-    // });
-    // В state есть объект с полями: { name: '', surname: '', ... }
-    //[name] — это имя поля, которое мы берём из input.
-    //value — текущее введённое значение (например, "Лера").
-    //Благодаря [name] функция работает для всех полей сразу, не нужно писать отдельный обработчик для каждого <input>.
+    const { name, value } = e.target;
+
+    if (name === 'name') {
+      setName(value);
+      console.log(name, ':', value);
+    } else if (name === 'surname') {
+      setSurname(value);
+      console.log(name, ':', value);
+    } else if (name === 'gender') {
+      setGender(value);
+      console.log(name, ':', value);
+    } else return;
   };
 
-  // !на сколько оно надо и можно ли упростить?
   const handlePhoneChange = phone => {
+    console.log('phone :', phone);
+
     const valid = phone ? isPossiblePhoneNumber(phone) : false;
     //isPossiblePhoneNumber - Проверяет, может ли введённый номер существовать реально, учитывая код страны, минимальную и максимальную длину.
 
@@ -45,8 +48,6 @@ const ContactForm = () => {
 
   const handleFormSubmit = e => {
     e.preventDefault();
-
-    // const { name, surname, phoneNumber, gender, phoneValid } = this.state;
 
     if (!phoneValid) {
       toast.error('Invalid phone');
@@ -82,11 +83,12 @@ const ContactForm = () => {
       surname: surname.trim(),
       phoneNumber,
       gender,
+      isFavorite: false,
     };
     console.log('🚀 ~ handleFormSubmit ~ contactInfo:', contactInfo);
 
-    // !addContact(contactInfo);
-    // toast.success('Contact added successfully!');
+    addContact(contactInfo);
+    toast.success('Contact added successfully!');
 
     e.target.reset();
   };

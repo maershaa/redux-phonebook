@@ -1,16 +1,10 @@
-import { ContactItem } from '@/components/Section_Phonebook/ContactItem';
+import { ContactItem } from '@/Section_Phonebook/ContactItem/ContactItem';
 
-const ContactList = ({
-  contacts,
-  deleteContact,
-  toggleFavourite,
-  favorites,
-}) => {
+const ContactList = ({ contacts, deleteContact }) => {
   return (
     <ul>
       {contacts.map(contact => {
-        const { id, name, surname, phoneNumber, gender } = contact;
-        const isFavourite = favorites.some(favID => favID === id);
+        const { id, name, surname, phoneNumber, gender, isFavorite } = contact;
 
         return (
           <ContactItem
@@ -21,8 +15,7 @@ const ContactList = ({
             phoneNumber={phoneNumber}
             gender={gender}
             deleteContact={deleteContact}
-            toggleFavourite={toggleFavourite}
-            isFavourite={isFavourite}
+            isFavorite={isFavorite}
           ></ContactItem>
         );
       })}

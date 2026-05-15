@@ -1,40 +1,24 @@
 import { HeroWrapper } from '@/components/Hero/Hero.styled';
-import { Button } from '@/components';
 
-const Hero = ({ openModal }) => {
+const Hero = () => {
   return (
     <HeroWrapper>
-      <p className="subtitle">Мини-проекты для практики React</p>
+      <p className="title">React + Redux Phonebook</p>
+
+      <h1 className="subtitle ">Приложение для управления контактами</h1>
 
       <p className="description">
-        Небольшой набор приложений: сбор отзывов, управление контактами и
-        просмотр изображений в галерее.
+        Phonebook позволяет добавлять, удалять и фильтровать контакты. Проект
+        создан для практики React, Redux Toolkit и работы с формами.
       </p>
 
       <ul className="hero-actions">
         <li>
-          <a href="#feedback" className="btn">
-            Перейти к Feedback Widget
-          </a>
-        </li>
-
-        <li>
           <a href="#phonebook" className="btn">
-            Перейти к Phonebook
-          </a>
-        </li>
-
-        <li>
-          <a href="#gallery" className="btn">
-            Перейти к Gallery
+            Открыть Phonebook
           </a>
         </li>
       </ul>
-      <Button
-        className="DiscoverMoreBtn"
-        text="Discover more"
-        onClick={openModal}
-      />
     </HeroWrapper>
   );
 };

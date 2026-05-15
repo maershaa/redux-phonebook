@@ -5,6 +5,15 @@ const HeroWrapper = styled.div`
   padding: 20px;
   color: ${({ theme }) => theme.colors.text.secondary};
 
+  .title {
+    font-family: ${({ theme }) => theme.fonts.heading};
+    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
   .subtitle {
     font-family: ${({ theme }) => theme.fonts.heading};
     font-size: 1.25rem; /* 20px */
