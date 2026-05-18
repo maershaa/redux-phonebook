@@ -5,3 +5,5 @@ export { Button } from './Button/Button';
 
 export { Filter, ContactList, PhonebookArticle } from '../Section_Phonebook';
 export { Section } from './Section';
+export { SharedLayout } from './SharedLayout/SharedLayout';
+export { Footer } from './Footer/Footer';

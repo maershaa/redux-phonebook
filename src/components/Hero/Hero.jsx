@@ -1,4 +1,5 @@
 import { HeroWrapper } from '@/components/Hero/Hero.styled';
+import { Link } from 'react-router';
 
 const Hero = () => {
   return (
@@ -14,9 +15,9 @@ const Hero = () => {
 
       <ul className="hero-actions">
         <li>
-          <a href="#phonebook" className="btn">
+          <Link to="phonebook" className="btn">
             Открыть Phonebook
-          </a>
+          </Link>
         </li>
       </ul>
     </HeroWrapper>

@@ -6,13 +6,16 @@ import { Provider } from 'react-redux';
 import App from './App.jsx';
 import { theme } from '../assets/styles/theme';
 import store from '@/redux/store';
+import { BrowserRouter } from 'react-router';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <GlobalStyles />
       <Provider store={store}>
-        <App />
+        <BrowserRouter basename="/redux-phonebook/">
+          <App />
+        </BrowserRouter>
       </Provider>
     </ThemeProvider>
   </StrictMode>
