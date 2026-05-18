@@ -2,7 +2,7 @@ import { Hero, Section } from '@/components';
 
 const HomePage = () => {
   return (
-    <Section title="Feedback Widget & Phonebook">
+    <Section>
       <Hero />
     </Section>
   );

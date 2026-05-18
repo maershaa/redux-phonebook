@@ -17,8 +17,8 @@ const HeaderWrapper = styled.header`
   nav {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Изменили на between для четкого баланса: Лого - Меню - Кнопка */
-    min-height: 64px; /* Немного увеличили высоту для воздуха */
+    justify-content: space-between;
+    min-height: 64px;
   }
 
   nav ul {
@@ -26,7 +26,7 @@ const HeaderWrapper = styled.header`
     align-items: center;
     column-gap: 32px; /* Увеличили расстояние между ссылками */
     list-style: none;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
   }
 

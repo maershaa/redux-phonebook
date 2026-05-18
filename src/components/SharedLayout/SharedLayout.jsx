@@ -1,7 +1,7 @@
 import { ToastContainer } from 'react-toastify';
 
 import { Header, Footer } from '@/components';
-import { Outlet } from 'react-router';
+import { Outlet } from 'react-router-dom';
 
 const SharedLayout = () => {
   return (
