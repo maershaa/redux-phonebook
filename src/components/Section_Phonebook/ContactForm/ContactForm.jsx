@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { MdPermIdentity } from 'react-icons/md';
 import { HiOutlineIdentification } from 'react-icons/hi';
-import {
-  Form,
-  GenderGroup,
-  RadioOption,
-} from '@/Section_Phonebook/ContactForm/ContactForm.styled';
+import { Form, GenderGroup, RadioOption } from './ContactForm.styled';
 
 import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';

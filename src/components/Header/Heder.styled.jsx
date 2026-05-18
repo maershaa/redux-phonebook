@@ -90,7 +90,7 @@ const HeaderWrapper = styled.header`
   }
 
   /* Красивая кнопка "Log in" в стиле мягкого минимализма */
-  button {
+  /* button {
     font-size: 14px;
     font-weight: 600;
     padding: 8px 18px;
@@ -112,7 +112,7 @@ const HeaderWrapper = styled.header`
       transform: translateY(0);
       background-color: #f3f4f6;
     }
-  }
+  } */
 `;
 const Logo = styled.a`
   font-family: ${({ theme }) => theme.fonts.heading};

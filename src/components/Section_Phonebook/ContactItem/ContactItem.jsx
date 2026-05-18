@@ -10,7 +10,7 @@ import {
   AvatarImg,
   ContactDetails,
   ContactActions,
-} from '@/Section_Phonebook/ContactItem/ContactItem.styled';
+} from './ContactItem.styled';
 
 import { toggleFavorite } from '@/redux/contactsSlice.js';
 import { useDispatch } from 'react-redux';

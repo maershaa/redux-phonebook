@@ -1,8 +1,11 @@
 import { HeaderWrapper, Logo } from '@/components/Header/Heder.styled';
-import { NavLink, Link } from 'react-router';
+import { Button } from '@/components';
+import { NavLink, Link, useNavigate } from 'react-router';
 const Header = () => {
+  const navigate = useNavigate();
+
   const handelLogInBtnClick = () => {
-    console.log('клик для логина');
+    navigate('/auth');
   };
   return (
     <HeaderWrapper>
@@ -31,9 +34,7 @@ const Header = () => {
           </li>
         </ul>
 
-        <button type="button" onClick={handelLogInBtnClick}>
-          Log in
-        </button>
+        <Button onClick={handelLogInBtnClick} text={'Log in'} />
       </nav>
     </HeaderWrapper>
   );

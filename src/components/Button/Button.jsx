@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { ButtonEl } from './Button.styled';
 const Button = props => {
   const { text, onClick, ...rest } = props;

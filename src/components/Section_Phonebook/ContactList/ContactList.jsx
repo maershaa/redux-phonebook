@@ -1,4 +1,4 @@
-import { ContactItem } from '@/Section_Phonebook/ContactItem/ContactItem';
+import { ContactItem } from '@/components/Section_Phonebook/ContactItem/ContactItem';
 
 const ContactList = ({ contacts, deleteContact }) => {
   return (

@@ -1,4 +1,4 @@
-import { Wrapper, FilterInput } from '@/Section_Phonebook/Filter/Filter.styled';
+import { Wrapper, FilterInput } from './Filter.styled';
 import { IoIosSearch } from 'react-icons/io';
 
 const Filter = ({ value, onChange }) => {

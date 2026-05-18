@@ -1,4 +1,4 @@
-import { Article } from '@/Section_Phonebook/PhonebookArticle/PhonebookArticle.styled';
+import { Article } from './PhonebookArticle.styled';
 
 const PhonebookArticle = ({ subtitle, children }) => {
   return (

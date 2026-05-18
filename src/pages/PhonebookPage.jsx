@@ -10,7 +10,7 @@ import {
   Filter,
   ContactList,
   PhonebookArticle,
-} from '@/Section_Phonebook';
+} from '@/components/Section_Phonebook';
 
 import { addContact, deleteContact } from '@/redux/contactsSlice.js';
 
@@ -87,7 +87,7 @@ const PhonebookPage = () => {
   );
 
   return (
-    <Section title="Phonebook-section" id="phonebook">
+    <Section title="Phonebook-section">
       <div className="phonebook-layout">
         <PhonebookArticle subtitle={'Phonebook'}>
           <ContactForm addContact={addContactToPhonebook} />
