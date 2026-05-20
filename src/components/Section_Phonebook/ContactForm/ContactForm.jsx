@@ -21,19 +21,14 @@ const ContactForm = ({ addContact }) => {
 
     if (name === 'name') {
       setName(value);
-      console.log(name, ':', value);
     } else if (name === 'surname') {
       setSurname(value);
-      console.log(name, ':', value);
     } else if (name === 'gender') {
       setGender(value);
-      console.log(name, ':', value);
     } else return;
   };
 
   const handlePhoneChange = phone => {
-    console.log('phone :', phone);
-
     const valid = phone ? isPossiblePhoneNumber(phone) : false;
     //isPossiblePhoneNumber - Проверяет, может ли введённый номер существовать реально, учитывая код страны, минимальную и максимальную длину.
 
@@ -81,7 +76,6 @@ const ContactForm = ({ addContact }) => {
       gender,
       isFavorite: false,
     };
-    console.log('🚀 ~ handleFormSubmit ~ contactInfo:', contactInfo);
 
     addContact(contactInfo);
     toast.success('Contact added successfully!');

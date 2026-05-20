@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { getContacts, addContact, deleteContact } from '@/redux/operations';
 
 const initialState = {
   // contacts: [
@@ -34,25 +35,30 @@ const initialState = {
   //     isFavorite: false,
   //   },
   // ],
-  contacts: JSON.parse(localStorage.getItem('contactsList')) || [],
-  // filter: { value: '' },
+  // contacts:
+  // JSON.parse(localStorage.getItem('contactsList')) ||
+  // [],
+  isLoading: false,
+  error: null,
+  entities: [], // «entities» означает «уникальные элементы с идентификатором», что как раз и описывает наши объекты c контактами.
+};
+
+const handlePending = state => {
+  state.isLoading = true;
+};
+
+const handleRejected = (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
 };
 
 const contactsSlice = createSlice({
   name: 'contacts',
   initialState,
   reducers: {
-    addContact: (state, action) => {
-      // action === newContact
-      state.contacts.push(action.payload);
-    },
-    deleteContact: (state, action) => {
-      // action === idToDelete
-      state.contacts = state.contacts.filter(el => el.id !== action.payload);
-    },
     toggleFavorite: (state, action) => {
       // action === idToToggle
-      const contactToToggle = state.contacts.find(
+      const contactToToggle = state.entities.find(
         contact => contact.id === action.payload
       );
       if (contactToToggle) {
@@ -60,9 +66,37 @@ const contactsSlice = createSlice({
       }
     },
   },
+  extraReducers: builder => {
+    builder
+      // getContacts
+      .addCase(getContacts.pending, handlePending)
+      .addCase(getContacts.fulfilled, (state, action) => {
+        state.entities = action.payload;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(getContacts.rejected, handleRejected)
+      //addContact
+      .addCase(addContact.pending, handlePending)
+      .addCase(addContact.fulfilled, (state, action) => {
+        state.entities.push(action.payload);
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(addContact.rejected, handleRejected)
+      //deleteContact
+      .addCase(deleteContact.pending, handlePending)
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        state.entities = state.entities.filter(
+          el => el.id !== action.payload.id
+        );
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(deleteContact.rejected, handleRejected);
+  },
 });
 
-export const { addContact, deleteContact, toggleFavorite } =
-  contactsSlice.actions;
+export const { toggleFavorite } = contactsSlice.actions;
 
 export default contactsSlice.reducer;

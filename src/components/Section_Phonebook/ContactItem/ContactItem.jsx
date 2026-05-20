@@ -13,6 +13,8 @@ import {
 } from './ContactItem.styled';
 
 import { toggleFavorite } from '@/redux/contactsSlice.js';
+// import { toggleFavorite } from '@/redux/operations';
+
 import { useDispatch } from 'react-redux';
 import { useCallback } from 'react';
 

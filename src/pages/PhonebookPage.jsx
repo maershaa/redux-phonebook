@@ -12,17 +12,17 @@ import {
   PhonebookArticle,
 } from '@/components/Section_Phonebook';
 
-import { addContact, deleteContact } from '@/redux/contactsSlice.js';
+import { getContacts, addContact, deleteContact } from '@/redux/operations';
 
 const PhonebookPage = () => {
-  const contacts = useSelector(state => state.contacts.contacts);
+  const contacts = useSelector(state => state.contacts.entities);
   const dispatch = useDispatch();
 
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('contactsList', JSON.stringify(contacts));
-  }, [contacts]);
+    dispatch(getContacts());
+  }, [dispatch]);
 
   const addContactToPhonebook = useCallback(
     newContact => {
