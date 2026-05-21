@@ -4,14 +4,14 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logOut } from '@/redux/authSlice';
 import { toast } from 'react-toastify';
+import { selectUser, selectIsLoggedIn } from '@/redux/selectors';
 
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector(state => state.auth.user);
-
-  const isLoggedIn = useSelector(state => state.auth.isLoggedIn);
+  const user = useSelector(selectUser);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   const handleLogInBtnClick = () => {
     navigate('/auth');
