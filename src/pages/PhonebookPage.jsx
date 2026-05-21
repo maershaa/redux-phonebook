@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Section, Notification } from '@/components';
@@ -11,11 +11,14 @@ import {
 import { getContacts, addContact, deleteContact } from '@/redux/operations';
 import { selectContacts } from '@/redux/selectors';
 
+import { setFilter } from '@/redux/filterSlice';
+import { selectFilter } from '@/redux/selectors';
+
 const PhonebookPage = () => {
   const contacts = useSelector(selectContacts);
   const dispatch = useDispatch();
 
-  const [filter, setFilter] = useState('');
+  const filter = useSelector(selectFilter);
 
   useEffect(() => {
     dispatch(getContacts());
@@ -58,9 +61,13 @@ const PhonebookPage = () => {
     [contacts, dispatch]
   );
 
-  const changeFilter = useCallback(evt => {
-    setFilter(evt.currentTarget.value);
-  }, []);
+  const changeFilter = useCallback(
+    evt => {
+      const value = evt.currentTarget.value;
+      dispatch(setFilter(value));
+    },
+    [dispatch]
+  );
 
   const visibleContacts = useMemo(() => {
     if (!filter.trim()) return contacts;
@@ -78,13 +85,13 @@ const PhonebookPage = () => {
   const handleDeleteContact = useCallback(
     id => {
       dispatch(deleteContact(id));
-      toast.info(`Contact  deleted`);
+      toast.info(`Contact deleted`);
     },
     [dispatch]
   );
 
   return (
-    <Section title="Phonebook-section">
+    <Section title="Phonebook">
       <div className="phonebook-layout">
         <PhonebookArticle subtitle={'Phonebook'}>
           <ContactForm addContact={addContactToPhonebook} />

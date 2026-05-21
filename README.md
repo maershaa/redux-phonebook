@@ -68,17 +68,6 @@ const handlePending = state => {
 };
 ```
 
-## Rejected
-
-```js
-const handleRejected = (state, action) => {
-  state.isLoading = false;
-  state.error = action.payload;
-};
-```
-
----
-
 # 🧠 Extra Reducers
 
 Все асинхронные операции обрабатываются через `extraReducers`.
