@@ -1,16 +1,81 @@
-# React + Vite
+# Phonebook
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Phonebook — это учебное SPA-приложение для управления контактами, созданное в
+рамках практики работы с React, Redux Toolkit и React Router. Проект
+демонстрирует организацию клиентского приложения с маршрутизацией, глобальным
+состоянием, асинхронными операциями и защитой маршрутов.
 
-Currently, two official plugins are available:
+## Возможности приложения
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- авторизация пользователя без backend;
+- защита приватных маршрутов;
+- добавление новых контактов;
+- удаление контактов;
+- поиск и фильтрация контактов;
+- добавление контактов в избранное;
+- централизованное управление состоянием через Redux Toolkit;
+- отображение уведомлений через React Toastify.
 
-## React Compiler
+## Архитектура проекта
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Приложение построено по принципам SPA (Single Page Application). Маршрутизация
+реализована с помощью React Router, а глобальное состояние хранится в Redux
+Store.
 
-## Expanding the ESLint configuration
+Для оптимизации структуры проекта используются:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Redux Toolkit slices;
+- selectors;
+- async operations;
+- memoization (`useMemo`);
+- memoized callbacks (`useCallback`).
+
+## Ветки проекта
+
+Проект разделён на две отдельные реализации:
+
+### `main`
+
+Основная ветка проекта. Контакты сохраняются локально через `localStorage`, без
+взаимодействия с сервером.
+
+Эта версия демонстрирует:
+
+- работу с Redux Toolkit;
+- сохранение данных в браузере;
+- клиентское управление состоянием;
+- базовую архитектуру SPA-приложения.
+
+### `redux-async-thunks`
+
+Расширенная версия приложения с асинхронной работой с API.
+
+В этой ветке используется:
+
+- `createAsyncThunk`;
+- `axios`;
+- асинхронные CRUD-операции;
+- обработка loading/error состояний;
+- работа с удалённой базой данных через MockAPI.
+
+Контакты загружаются с сервера, а все изменения синхронизируются через
+HTTP-запросы.
+
+## Технологии
+
+Проект разработан с использованием:
+
+- React
+- Redux Toolkit
+- React Router
+- Axios
+- Redux Thunk
+- Vite
+- React Toastify
+- MockAPI
+
+## Цель проекта
+
+Основная цель проекта — практика современной frontend-разработки и изучение
+подходов к организации React-приложений с использованием Redux Toolkit и
+асинхронной логики.
