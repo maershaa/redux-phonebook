@@ -1,5 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getContacts, addContact, deleteContact } from '@/redux/operations';
+import {
+  getContacts,
+  addContact,
+  deleteContact,
+  toggleFavorite,
+} from '@/redux/operations';
 
 const initialState = {
   // contacts: [
@@ -55,17 +60,7 @@ const handleRejected = (state, action) => {
 const contactsSlice = createSlice({
   name: 'contacts',
   initialState,
-  reducers: {
-    toggleFavorite: (state, action) => {
-      // action === idToToggle
-      const contactToToggle = state.entities.find(
-        contact => contact.id === action.payload
-      );
-      if (contactToToggle) {
-        contactToToggle.isFavorite = !contactToToggle.isFavorite;
-      }
-    },
-  },
+  reducers: {},
   extraReducers: builder => {
     builder
       // getContacts
@@ -93,10 +88,22 @@ const contactsSlice = createSlice({
         state.isLoading = false;
         state.error = null;
       })
-      .addCase(deleteContact.rejected, handleRejected);
+      .addCase(deleteContact.rejected, handleRejected)
+      //toggleFavorite
+      .addCase(toggleFavorite.pending, handlePending)
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        const index = state.entities.findIndex(
+          contact => contact.id === action.payload.id
+        );
+        if (index !== -1) {
+          // перезаписываем старый контакт новым объектом от сервера
+          state.entities[index] = action.payload;
+        }
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(toggleFavorite.rejected, handleRejected);
   },
 });
-
-export const { toggleFavorite } = contactsSlice.actions;
 
 export default contactsSlice.reducer;

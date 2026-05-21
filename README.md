@@ -1,16 +1,131 @@
-# React + Vite
+# 📱 Phonebook App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Учебное SPA-приложение для управления контактами, созданное с использованием
+React, Redux Toolkit и React Router.
 
-Currently, two official plugins are available:
+Проект демонстрирует работу с:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- глобальным состоянием через Redux Toolkit;
+- асинхронными операциями (`createAsyncThunk`);
+- REST API-запросами через `axios`;
+- маршрутизацией и защитой приватных роутов;
+- CRUD-операциями с контактами.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# 🚀 Возможности приложения
 
-## Expanding the ESLint configuration
+- 🔐 Авторизация без backend
+- 🛡️ Защита приватных маршрутов
+- ➕ Добавление контактов
+- ❌ Удаление контактов
+- ⭐ Добавление контактов в избранное
+- 🔍 Фильтрация контактов
+- 🌐 Работа с MockAPI
+- ⚡ Асинхронные запросы через `createAsyncThunk`
+- 🗂️ Централизованное хранение состояния в Redux Store
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+# 🛠️ Технологии
+
+- React
+- Redux Toolkit
+- React Router
+- Axios
+- JavaScript
+- CSS / SCSS
+- Vite
+
+---
+
+# ⚙️ Асинхронные операции
+
+Для работы с сервером используется `createAsyncThunk`.
+
+Реализованы операции:
+
+- `getContacts` — получение контактов
+- `addContact` — добавление контакта
+- `deleteContact` — удаление контакта
+- `toggleFavorite` — изменение статуса избранного
+
+---
+
+# 🔄 Обработка состояний запроса
+
+Redux Toolkit автоматически создает три состояния для каждого async thunk:
+
+- `pending`
+- `fulfilled`
+- `rejected`
+
+## Pending
+
+```js
+const handlePending = state => {
+  state.isLoading = true;
+};
+```
+
+## Rejected
+
+```js
+const handleRejected = (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+};
+```
+
+---
+
+# 🧠 Extra Reducers
+
+Все асинхронные операции обрабатываются через `extraReducers`.
+
+---
+
+# 🔐 Авторизация
+
+В приложении реализована упрощенная система авторизации без backend.
+
+Пользователь может:
+
+- войти в аккаунт;
+- выйти из аккаунта;
+- получать доступ только к защищенным страницам.
+
+Раздел **Phonebook** доступен только авторизованным пользователям.
+
+---
+
+# ▶️ Запуск проекта
+
+## Установка зависимостей
+
+```bash
+npm install
+```
+
+## Запуск проекта
+
+```bash
+npm run dev
+```
+
+---
+
+# 📚 Чему посвящен проект
+
+Этот проект создан для практики:
+
+- Redux Toolkit
+- Async Thunks
+- REST API
+- Архитектуры React-приложений
+- Управления глобальным состоянием
+- Маршрутизации
+- Защиты роутов
+- CRUD-операций
+
+---

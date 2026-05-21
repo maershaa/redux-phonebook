@@ -12,29 +12,20 @@ import {
   ContactActions,
 } from './ContactItem.styled';
 
-import { toggleFavorite } from '@/redux/contactsSlice.js';
-// import { toggleFavorite } from '@/redux/operations';
+import { toggleFavorite } from '@/redux/operations';
 
 import { useDispatch } from 'react-redux';
-import { useCallback } from 'react';
 
-const ContactItem = ({
-  id,
-  name,
-  surname,
-  phoneNumber,
-  gender,
-  deleteContact,
-  isFavorite,
-}) => {
+const ContactItem = ({ contact, deleteContact }) => {
   const dispatch = useDispatch();
+  const { id, name, surname, phoneNumber, gender, isFavorite } = contact;
 
   const imgSrc =
     gender === 'male' ? boy : gender === 'female' ? girl : unknown_gender;
 
-  const handleToggleFavorite = useCallback(() => {
-    dispatch(toggleFavorite(id));
-  }, [dispatch, id]);
+  const handleToggleFavorite = () => {
+    dispatch(toggleFavorite(contact));
+  };
 
   return (
     <ContactCard>

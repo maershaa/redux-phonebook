@@ -1,56 +1,143 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 const BASE_URL = 'https://65e95c314bb72f0a9c513d32.mockapi.io/contacts';
 
-const getContacts = createAsyncThunk('contacts/getContacts', async () => {
-  const getContactsOptions = {
-    method: 'GET',
-    headers: { 'content-type': 'application/json' },
-  };
+const getContacts = createAsyncThunk(
+  'contacts/getContacts',
+  async (_, thunkAPI) => {
+    try {
+      const response = await axios.get(BASE_URL);
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data || error.message;
+      return thunkAPI.rejectWithValue(errorMessage);
+    }
+  }
+);
 
-  const response = await fetch(BASE_URL, getContactsOptions);
-  return response.json();
-});
+const addContact = createAsyncThunk(
+  'contacts/addContact',
+  async (data, thunkAPI) => {
+    try {
+      const response = await axios.post(BASE_URL, data);
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data || error.message;
+      return thunkAPI.rejectWithValue(errorMessage);
+    }
+  }
+);
 
-const addContact = createAsyncThunk('contacts/addContact', async data => {
-  const postOptions = {
-    method: 'POST', // или 'PUT'
-    body: JSON.stringify(data),
-    headers: { 'content-type': 'application/json' },
-  };
+const deleteContact = createAsyncThunk(
+  'contacts/deleteContact',
+  async (id, thunkAPI) => {
+    try {
+      const response = await axios.delete(`${BASE_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data || error.message;
+      return thunkAPI.rejectWithValue(errorMessage);
+    }
+  }
+);
 
-  const response = await fetch(BASE_URL, postOptions);
-  return response.json();
-});
+//! Использовала PUT в toggleFavorite, так как PATCH-запросы в бесплатной версии MockAPI работают некорректно.
+const toggleFavorite = createAsyncThunk(
+  'contacts/toggleFavorite',
+  async (contact, thunkAPI) => {
+    const toggleInfo = { ...contact, isFavorite: !contact.isFavorite };
 
-const deleteContact = createAsyncThunk('contacts/deleteContact', async id => {
-  const deleteOptions = {
-    method: 'DELETE',
-    headers: { 'content-type': 'application/json' },
-  };
+    try {
+      const response = await axios.put(`${BASE_URL}/${contact.id}`, toggleInfo);
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data || error.message;
+      return thunkAPI.rejectWithValue(errorMessage);
+    }
+  }
+);
 
-  const response = await fetch(`${BASE_URL}/${id}`, deleteOptions);
-  return response.json();
-});
+export { getContacts, addContact, deleteContact, toggleFavorite };
 
-// const toggleFavorite = createAsyncThunk(
-//   'contacts/toggleFavorite',
-//   async ({ id, isFavorite }) => {
-//     console.log('🚀 ~ id:', id);
-//     const toggleFavoriteOptions = {
-//       method: 'PATCH',
-//       headers: { 'content-type': 'application/json' },
-//       body: JSON.stringify({ isFavorite: !isFavorite }),
-//     };
+/* Тоже самое но через стандартный fetch */
+/* 
+const getContacts = createAsyncThunk(
+  'contacts/getContacts',
+  async (_, thunkAPI) => {
+    try {
+      const response = await fetch(BASE_URL);
 
-//     const response = await fetch(`${BASE_URL}/${id}`, toggleFavoriteOptions);
-//     return response.json();
-//   }
-// );
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
 
-export {
-  getContacts,
-  addContact,
-  deleteContact,
-  // toggleFavorite
-};
+      return await response.json();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+const addContact = createAsyncThunk(
+  'contacts/addContact',
+  async (data, thunkAPI) => {
+    try {
+      const response = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+const deleteContact = createAsyncThunk(
+  'contacts/deleteContact',
+  async (id, thunkAPI) => {
+    try {
+      const response = await fetch(`${BASE_URL}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+const toggleFavorite = createAsyncThunk(
+  'contacts/toggleFavorite',
+  async (contact, thunkAPI) => {
+    const toggleInfo = { ...contact, isFavorite: !contact.isFavorite };
+
+    try {
+      const response = await fetch(`${BASE_URL}/${contact.id}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(toggleInfo),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+); */

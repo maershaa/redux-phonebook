@@ -4,18 +4,11 @@ const ContactList = ({ contacts, deleteContact }) => {
   return (
     <ul>
       {contacts.map(contact => {
-        const { id, name, surname, phoneNumber, gender, isFavorite } = contact;
-
         return (
           <ContactItem
-            key={id}
-            id={id}
-            name={name}
-            surname={surname}
-            phoneNumber={phoneNumber}
-            gender={gender}
+            key={contact.id}
             deleteContact={deleteContact}
-            isFavorite={isFavorite}
+            contact={contact}
           ></ContactItem>
         );
       })}
