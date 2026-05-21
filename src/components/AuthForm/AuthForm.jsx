@@ -4,6 +4,7 @@ import { useReducer } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logIn } from '@/redux/authSlice.js';
 import { toast } from 'react-toastify';
+import { selectUser, selectIsLoggedIn } from '@/redux/selectors';
 
 // Редьюсер и состояние для локального состояния формы
 const initialState = {
@@ -35,7 +36,8 @@ const AuthForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { user, isLoggedIn } = useSelector(state => state.auth);
+  const user = useSelector(selectUser);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   const [formState, dispatchFormState] = useReducer(reducer, initialState);
 

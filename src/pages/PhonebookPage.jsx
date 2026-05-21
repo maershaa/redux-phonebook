@@ -1,21 +1,18 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { toast } from 'react-toastify';
-
 import { Section, Notification } from '@/components';
-
 import {
   ContactForm,
   Filter,
   ContactList,
   PhonebookArticle,
 } from '@/components/Section_Phonebook';
-
 import { addContact, deleteContact } from '@/redux/contactsSlice.js';
+import { selectContacts } from '@/redux/selectors';
 
 const PhonebookPage = () => {
-  const contacts = useSelector(state => state.contacts.contacts);
+  const contacts = useSelector(selectContacts);
   const dispatch = useDispatch();
 
   const [filter, setFilter] = useState('');

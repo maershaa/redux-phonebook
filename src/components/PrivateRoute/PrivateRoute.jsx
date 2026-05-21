@@ -1,10 +1,10 @@
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
-
+import { selectIsLoggedIn } from '@/redux/selectors';
 //  Navigate — это программный redirect. Если пользователь не авторизован находясь на /phonebook, то его автоматически перекинет на: /auth
 
 const PrivateRoute = ({ children }) => {
-  const isLoggedIn = useSelector(state => state.auth.isLoggedIn);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   return isLoggedIn ? children : <Navigate to="/auth" replace />;
 };
