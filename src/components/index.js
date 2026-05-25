@@ -10,3 +10,5 @@ export { AuthForm } from './AuthForm/AuthForm';
 export { SharedLayout } from './SharedLayout/SharedLayout';
 
 export { PrivateRoute } from './PrivateRoute/PrivateRoute';
+
+export { Loader } from './Loader/Loader';

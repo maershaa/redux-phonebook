@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { Section, Notification } from '@/components';
+import { Section, Notification, Loader } from '@/components';
 import {
   ContactForm,
   Filter,
@@ -20,7 +20,10 @@ import { selectFilter } from '@/redux/selectors';
 
 const PhonebookPage = () => {
   // RTK Query сам хранит: loading, error, cache, fetched data
-  const { data: contacts = [] } = useGetContactsQuery();
+  const {
+    data: contacts = [],
+    isLoading, // isLoading- только первый рендер сработает
+  } = useGetContactsQuery();
   const [addContact] = useAddContactMutation();
   const [deleteContact] = useDeleteContactMutation();
 
@@ -100,20 +103,22 @@ const PhonebookPage = () => {
           <ContactForm addContact={addContactToPhonebook} />
         </PhonebookArticle>
 
-        {!contacts || contacts.length === 0 ? (
-          <PhonebookArticle subtitle={'Contacts'}>
-            <Notification message="There are no contacts yet" />
-          </PhonebookArticle>
-        ) : (
+        <PhonebookArticle subtitle={'Contacts'}>
           <PhonebookArticle>
             <Filter value={filter} onChange={changeFilter} />
 
-            <ContactList
-              contacts={visibleContacts}
-              deleteContact={handleDeleteContact}
-            />
+            {isLoading ? (
+              <Loader />
+            ) : contacts.length === 0 ? (
+              <Notification message="There are no contacts yet" />
+            ) : (
+              <ContactList
+                contacts={visibleContacts}
+                deleteContact={handleDeleteContact}
+              />
+            )}
           </PhonebookArticle>
-        )}
+        </PhonebookArticle>
       </div>
     </Section>
   );
