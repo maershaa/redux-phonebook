@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Section, Notification } from '@/components';
@@ -8,21 +8,25 @@ import {
   ContactList,
   PhonebookArticle,
 } from '@/components/Section_Phonebook';
-import { getContacts, addContact, deleteContact } from '@/redux/operations';
-import { selectContacts } from '@/redux/selectors';
+
+import {
+  useGetContactsQuery,
+  useAddContactMutation,
+  useDeleteContactMutation,
+} from '@/redux/services/contactsApi';
 
 import { setFilter } from '@/redux/filterSlice';
 import { selectFilter } from '@/redux/selectors';
 
 const PhonebookPage = () => {
-  const contacts = useSelector(selectContacts);
+  // RTK Query сам хранит: loading, error, cache, fetched data
+  const { data: contacts = [] } = useGetContactsQuery();
+  const [addContact] = useAddContactMutation();
+  const [deleteContact] = useDeleteContactMutation();
+
   const dispatch = useDispatch();
 
   const filter = useSelector(selectFilter);
-
-  useEffect(() => {
-    dispatch(getContacts());
-  }, [dispatch]);
 
   const addContactToPhonebook = useCallback(
     newContact => {
@@ -54,11 +58,10 @@ const PhonebookPage = () => {
         return;
       }
 
-      dispatch(addContact(newContact));
-
+      addContact(newContact);
       toast.success('Contact added successfully');
     },
-    [contacts, dispatch]
+    [addContact, contacts]
   );
 
   const changeFilter = useCallback(
@@ -84,10 +87,10 @@ const PhonebookPage = () => {
 
   const handleDeleteContact = useCallback(
     id => {
-      dispatch(deleteContact(id));
+      deleteContact(id);
       toast.info(`Contact deleted`);
     },
-    [dispatch]
+    [deleteContact]
   );
 
   return (
@@ -97,7 +100,7 @@ const PhonebookPage = () => {
           <ContactForm addContact={addContactToPhonebook} />
         </PhonebookArticle>
 
-        {contacts.length === 0 ? (
+        {!contacts || contacts.length === 0 ? (
           <PhonebookArticle subtitle={'Contacts'}>
             <Notification message="There are no contacts yet" />
           </PhonebookArticle>
