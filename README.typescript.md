@@ -5,6 +5,29 @@
 
 ---
 
+## Содержание
+
+1. [Базовые типы](#базовые-типы-в-typescript)
+2. [Сложные типы](#сложные-типы)
+3. [Union и Intersection](#union-type-)
+4. [Tuple](#tuple-кортеж)
+5. [Специальные типы: any, unknown](#специальные-типы)
+6. [Enum](#enum)
+7. [Типизация функций](#типизация-функций)
+8. [type vs interface](#кратко-про-type-и-interface)
+9. [Type Guards](#type-guards)
+10. [Работа с HTML-элементами](#работа-с-html-элементами)
+11. [Index Properties](#index-properties-индексные-сигнатуры)
+12. [Дженерики](#дженерики-generics)
+13. [Utility Types](#utility-types)
+14. [React: типизация компонентов](#react-типизация-компонентов)
+15. [React: типизация событий](#react-типизация-событий)
+16. [React: children — JSX.Element vs ReactNode](#react-children--jsxelement-vs-reactnode)
+17. [Установка TypeScript в проект](#установка-typescript)
+18. [Практика: порядок переименования файлов](#порядок-переименования-файлов-на-практике)
+
+---
+
 # Базовые типы в TypeScript
 
 > TypeScript умеет выводить (infer) типы автоматически, поэтому примитивные типы
@@ -159,8 +182,6 @@ value = true;
 
 Использовать рекомендуется только в крайних случаях (например, при временной
 заглушке во время миграции), так как `any` убивает весь смысл TypeScript.
-
----
 
 ## `unknown`
 
@@ -715,26 +736,261 @@ const printLength = (value: DefiniteString) => {
 };
 ```
 
+## Индексный доступ к типу поля — `Type['key']`
+
+Не совсем «утилитный тип» в привычном смысле, но крайне полезный приём:
+позволяет взять тип конкретного поля из другого типа/интерфейса, вместо того
+чтобы дублировать его вручную.
+
+```ts
+interface Contact {
+  id: string;
+  name: string;
+}
+
+// вместо того чтобы писать id: string руками
+const deleteContact = (id: Contact['id']) => {
+  // ...
+};
+```
+
+Если завтра `id` в `Contact` поменяется на другой тип — все места, которые
+ссылаются на `Contact['id']`, подхватят изменение автоматически, без ручного
+поиска и замены по всему проекту.
+
+---
+
+# React: типизация компонентов
+
+## Нужно ли использовать `FC<Props>`?
+
+Раньше типизация React-компонента через `React.FC<Props>` считалась стандартом:
+
+```tsx
+import { FC, JSX } from 'react';
+
+type SectionProps = {
+  title?: string;
+  children: JSX.Element;
+};
+
+const Section: FC<SectionProps> = ({ title, children }) => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  );
+};
+
+export { Section };
+```
+
+Сегодня в комьюнити рекомендуют **не использовать `FC`**, а типизировать пропсы
+напрямую в параметре функции:
+
+```tsx
+type SectionProps = {
+  title?: string;
+  children: JSX.Element;
+};
+
+const Section = ({ title, children }: SectionProps) => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  );
+};
+
+export { Section };
+```
+
+**Почему так лучше:**
+
+- `FC` явного профита не даёт — тип возвращаемого значения (`JSX.Element`) TS и
+  так корректно выводит сам.
+- В старых версиях React-типов `FC` неявно добавлял `children` в пропсы, даже
+  если компонент их не принимал — источник путаницы.
+- `FC` усложняет работу с дженерик-компонентами.
+
+Это правило действует **независимо от того, есть у компонента пропсы или нет** —
+даже без пропсов не нужно писать `const Component: FC = () => {...}`, достаточно
+`const Component = () => {...}`.
+
+---
+
+## Явно указывать тип в `useState<T>` или доверять инференции?
+
+Правило простое: **не дублируй то, что TS и так выведет из начального
+значения.**
+
+Если начальное значение однозначно определяет тип — аннотация избыточна:
+
+```ts
+const [name, setName] = useState<string>(''); // <string> здесь лишний
+const [name, setName] = useState(''); // TS сам выведет string
+```
+
+Явная аннотация **обязательна**, когда реальный тип шире, чем то, что можно
+вывести из начального значения:
+
+```ts
+// Без <..> TS выведет тип как просто '' (widening отключён), а не нужный union
+const [gender, setGender] = useState<'male' | 'female' | ''>('');
+```
+
+Так же обязательна аннотация для `null`-начальных значений — без неё TS выведет
+тип переменной как буквально `null`, и положить туда объект будет нельзя:
+
+```ts
+const [user, setUser] = useState<User | null>(null);
+```
+
+---
+
+# React: типизация событий
+
+| React-обработчик         | Тип события        | Когда использовать            |
+| ------------------------ | ------------------ | ----------------------------- |
+| `onChange`               | `ChangeEvent<T>`   | input, select, textarea       |
+| `onSubmit` / `onReset`   | `FormEvent<T>`\*   | `<form>`                      |
+| `onClick`                | `MouseEvent<T>`    | кнопки, ссылки, любой элемент |
+| `onKeyDown`/`Up`/`Press` | `KeyboardEvent<T>` | инпуты, документ              |
+| `onFocus`/`onBlur`       | `FocusEvent<T>`    | инпуты                        |
+
+\* Начиная с `@types/react` v19.2.10 `FormEvent`/`FormEventHandler` помечены как
+`@deprecated` в пользу `SubmitEvent`/`SubmitEventHandler`. Старый тип пока
+продолжает работать, но лучше сразу использовать новый:
+
+```ts
+const handleFormSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  // ...
+};
+```
+
+**Общее правило выбора:**
+
+- Обработчик — это JSX-проп (`onX={...}`) → бери тип из `React.XEvent`.
+- Работаешь с `ref.current.addEventListener(...)` напрямую, минуя JSX → бери
+  нативный DOM-тип, без префикса `React.`.
+
+---
+
+## `*Element` vs `*Attributes`
+
+| Тип                       | Что описывает                                                                                                         | Где используется                                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `HTMLInputElement`        | Реальный `<input>`-элемент в DOM: свойства (`value`, `checked`, `disabled`) и методы (`focus()`, `select()`)          | В `ChangeEvent<HTMLInputElement>`, в `useRef<HTMLInputElement>(null)`                           |
+| `InputHTMLAttributes<T>`  | Набор HTML-атрибутов, которые можно передать в JSX `<input>` (`placeholder`, `value`, `onChange`, `type`, `disabled`) | Свой компонент-обёртка над `<input>`, чтобы принять стандартные пропсы без ручного перечисления |
+| `HTMLFormElement`         | Реальный `<form>`-элемент: методы `.reset()`, `.submit()`, свойство `.elements`                                       | `FormEvent<HTMLFormElement>` / `SubmitEvent<HTMLFormElement>`, `useRef<HTMLFormElement>(null)`  |
+| `FormHTMLAttributes<T>`   | Атрибуты для JSX `<form>` (`onSubmit`, `action`, `method`, `noValidate`)                                              | Свой компонент-обёртка над `<form>`                                                             |
+| `HTMLButtonElement`       | Реальный `<button>`-элемент: `.disabled`, `.form`, `.type`                                                            | `useRef<HTMLButtonElement>(null)`, события на кнопке                                            |
+| `ButtonHTMLAttributes<T>` | Атрибуты для JSX `<button>` (`onClick`, `disabled`, `type`)                                                           | Свой компонент-кнопка                                                                           |
+| `HTMLSelectElement`       | Реальный `<select>`-элемент: `.value`, `.selectedIndex`, `.options`                                                   | `ChangeEvent<HTMLSelectElement>`, `useRef<HTMLSelectElement>(null)`                             |
+| `SelectHTMLAttributes<T>` | Атрибуты для JSX `<select>` (`onChange`, `multiple`, `value`)                                                         | Свой компонент-обёртка над `<select>`                                                           |
+
+**Правило выбора одной фразой:** если работаешь с событием (`ChangeEvent`,
+`SubmitEvent`) или `ref` — используешь `*Element`. Если пишешь свой
+переиспользуемый компонент и расширяешь его пропсами родного HTML-тега
+(`extends InputHTMLAttributes<...>`) — используешь `*Attributes`.
+
+Пример переиспользуемого `<Input />`:
+
+```tsx
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+}
+
+const Input = ({ label, ...rest }: InputProps) => (
+  <div>
+    <label>{label}</label>
+    <input {...rest} />
+  </div>
+);
+```
+
+`InputHTMLAttributes<HTMLInputElement>` даёт все стандартные пропсы `<input>`
+«бесплатно» — не нужно вручную писать `value?: string`, `onChange?: ...`,
+`placeholder?: string` и так далее.
+
+---
+
+# React: `children` — `JSX.Element` vs `ReactNode`
+
+| Тип                    | Что разрешает                                                                                                                    | Что запрещает                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `JSX.Element`          | Ровно один готовый React-элемент (`<div/>`, `<Component/>`)                                                                      | Строки, числа, `null`, `undefined`, `boolean`, массивы элементов, условный рендер (`{cond && <div/>}`) |
+| `ReactElement<P>`      | То же, что `JSX.Element`, но можно указать тип пропсов конкретного элемента (`ReactElement<ButtonProps>`)                        | То же, что и `JSX.Element`                                                                             |
+| `ReactNode`            | Вообще всё, что React способен отрендерить: элементы, строки, числа, `null`, `undefined`, `boolean`, массивы, фрагменты, порталы | Практически ничего не запрещает — «разрешить всё»                                                      |
+| `PropsWithChildren<T>` | Не отдельный тип, а утилита: автоматически добавляет `children?: ReactNode` к пропс-типу                                         | —                                                                                                      |
+
+## Когда что использовать
+
+**`ReactNode`** — самый частый выбор для универсальных обёрток-контейнеров
+(layout, Card, Modal), где реально может прийти что угодно:
+
+```tsx
+interface CardProps {
+  children: ReactNode;
+}
+// <Card>Просто текст</Card>       — ок
+// <Card>{count}</Card>            — ок, число
+// <Card><div/><div/></Card>       — ок, несколько элементов
+```
+
+**`JSX.Element`** — когда компонент требует ровно один конкретный элемент, и
+нужно, чтобы TS запрещал передавать «мусор» (строку по ошибке, `null` из
+условного рендера). Хороший пример — `PrivateRoute`, где принципиально важно,
+что придёт именно защищаемый маршрут:
+
+```tsx
+interface PrivateRouteProps {
+  children: JSX.Element;
+}
+
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+  return isLoggedIn ? children : <Navigate to="/auth" replace />;
+};
+```
+
+**`PropsWithChildren<T>`** — сокращение, чтобы не писать `children: ReactNode`
+руками каждый раз:
+
+```tsx
+type Props = PropsWithChildren<{ title: string }>;
+// эквивалентно
+type Props = { title: string; children?: ReactNode };
+```
+
+⚠️ `children` в `PropsWithChildren` **опционален**. Если `children` в компоненте
+обязателен (как в `Section` или `PrivateRoute`) — `PropsWithChildren` без
+изменений не подходит, нужен явный `children: ReactNode`.
+
 ---
 
 # Что важно запомнить
 
-| Что                               | Для чего                       |
-| --------------------------------- | ------------------------------ |
-| `string`, `number`, `boolean`     | Примитивные типы               |
-| `object`                          | Объект (лучше описывать явно)  |
-| `User[]`                          | Массив объектов                |
-| `A \| B`                          | Один из нескольких типов       |
-| `A & B`                           | Объединение типов              |
-| `[string, number]`                | Кортеж                         |
-| `any`                             | Отключает проверку типов       |
-| `unknown`                         | Безопасная альтернатива `any`  |
-| `enum`                            | Набор констант                 |
-| `type`                            | Универсальный алиас типов      |
-| `interface`                       | Описание структуры объектов    |
-| `void`                            | Функция ничего не возвращает   |
-| `never`                           | Функция никогда не завершается |
-| `Partial<T>` / `Pick<T,K>` и т.д. | Готовые Utility Types          |
+| Что                               | Для чего                             |
+| --------------------------------- | ------------------------------------ |
+| `string`, `number`, `boolean`     | Примитивные типы                     |
+| `object`                          | Объект (лучше описывать явно)        |
+| `User[]`                          | Массив объектов                      |
+| `A \| B`                          | Один из нескольких типов             |
+| `A & B`                           | Объединение типов                    |
+| `[string, number]`                | Кортеж                               |
+| `any`                             | Отключает проверку типов             |
+| `unknown`                         | Безопасная альтернатива `any`        |
+| `enum`                            | Набор констант                       |
+| `type`                            | Универсальный алиас типов            |
+| `interface`                       | Описание структуры объектов          |
+| `void`                            | Функция ничего не возвращает         |
+| `never`                           | Функция никогда не завершается       |
+| `Partial<T>` / `Pick<T,K>` и т.д. | Готовые Utility Types                |
+| `Type['key']`                     | Тип конкретного поля из другого типа |
 
 ---
 
@@ -806,13 +1062,33 @@ npx tsc --init
 позволяют TypeScript работать одновременно с `.js`, `.jsx`, `.ts` и `.tsx`.
 Поэтому проект можно переносить постепенно, а не переписывать всё разом.
 
-внутри src/ создаем файл vite-env.d.ts. и туда пишем ///
-<reference types="vite/client" /> TypeScript по умолчанию ничего не знает о том,
-как импортировать .css. По этому если такие файлы есть то это нужно подключить
-ambient-типы, которые объявляют модули _.css, _.svg и т.д. созданием файла
-vite-env.d.ts.
+## 4. Подключаем ambient-типы для Vite
 
-## 4. Переименовываем первые файлы
+TypeScript по умолчанию ничего не знает о том, как импортировать `.css`, `.svg`
+и другие не-JS/TS файлы. Чтобы это исправить, внутри `src/` создаём файл
+`vite-env.d.ts`:
+
+```ts
+/// <reference types="vite/client" />
+```
+
+Эта строка подключает ambient-типы из самого пакета `vite`, которые объявляют
+модули `*.css`, `*.svg`, `import.meta.env` и т.д.
+
+**Если после создания файла ошибка не исчезла — проверь по шагам:**
+
+1. Файл лежит именно внутри `src/` (там, куда смотрит `"include": ["src"]` в
+   `tsconfig.json`), а не в корне проекта.
+2. Перезапусти TS-сервер в редакторе: `Cmd+Shift+P` →
+   `TypeScript: Restart TS Server` — VSCode иногда кэширует состояние языкового
+   сервиса.
+3. Гарантированный fallback, если ничего не помогло — объявить модуль явно:
+   ```ts
+   // src/types/css.d.ts
+   declare module '*.css';
+   ```
+
+## 5. Переименовываем первые файлы
 
 Сначала достаточно переименовать:
 
@@ -823,7 +1099,7 @@ App.jsx  → App.tsx
 
 После этого TypeScript уже начинает работать в проекте.
 
-## 5. Исправляем main.tsx
+## 6. Исправляем main.tsx
 
 Было (JavaScript):
 
@@ -855,20 +1131,19 @@ createRoot(root).render(
 
 Потому что `document.getElementById()` может вернуть `HTMLElement | null`.
 TypeScript не даст вызвать `createRoot(null)` и заставляет явно обработать этот
-случай — либо проверкой (как выше), либо приведением типа через `as`.
+случай — либо проверкой (как выше), либо приведением типа через `as`:
 
 ```tsx
-const root = document.getElementById('root') as HTMLInputElement;
+const root = document.getElementById('root') as HTMLElement;
 
 createRoot(root).render(
   <StrictMode>
-    {' '}
-    <App />{' '}
+    <App />
   </StrictMode>
 );
 ```
 
-## 6. Постепенно переносим проект
+## 7. Постепенно переносим проект
 
 Рекомендуемый порядок:
 
@@ -892,7 +1167,7 @@ createRoot(root).render(
 
 Не нужно переименовывать всё сразу.
 
-## 7. Во время миграции
+## 8. Во время миграции
 
 Проект может выглядеть так, и это абсолютно нормально:
 
@@ -913,7 +1188,7 @@ src/
 │   └── Loader.tsx
 ```
 
-## 8. После полной миграции
+## 9. После полной миграции
 
 Когда в проекте больше не останется файлов `.js` и `.jsx`, можно:
 
@@ -1005,108 +1280,3 @@ const Button = ({ title }: ButtonProps) => {
 
 И так — файл за файлом, ты постепенно добавляешь типы по мере того, как
 TypeScript их запрашивает.
-
----
-
-Нужно ли типизировать FC вне зависитимсти от того есть пропсы или нет? Явного
-профита FC не даёт — тип возвращаемого значения (JSX.Element) и так корректно
-выводится. но выглядит для примера это так. import { FC, JSX } from 'react';
-
-type SectionProps = { title?: string; children: JSX.Element; };
-
-const Section: FC<SectionProps> = ({ title, children }) => { return ( <div>
-
-<h2>{title}</h2> {children} </div> ); };
-
-export { Section };
-
-Явно указывать useState<string>('') — хорошая практика? Если начальное значение
-уже однозначно определяет тип ('' → string, 0 → number, false → boolean) —
-TypeScript сам это поймет. Он обязателен, когда тип шире, например: const
-[gender, setGender] = useState<'male' | 'female' | ''>('');
-
-Так же обязателен явный тип для null-начальных значений: const [user, setUser] =
-useState<User | null>(null);
-
-React-обработчик Тип события Когда использовать onChange ChangeEvent<T> input,
-select, textarea onSubmit / onReset FormEvent<T> <form> onClick MouseEvent<T>
-кнопки, ссылки, любой элемент onKeyDown/Up/Press KeyboardEvent<T> инпуты,
-документ onFocus/onBlur FocusEvent<T> инпуты
-
-если обработчик — это JSX-проп (onX={...}) → бери тип из React.XEvent. Если
-работаешь с ref.current.addEventListener напрямую → бери нативный DOM-тип без
-React. префикса.
-
-Тип Что описывает Где используется HTMLInputElement Реальный <input>-элемент в
-DOM: его свойства (value, checked, disabled) и методы (focus(), select()) В
-ChangeEvent<HTMLInputElement>, в useRef<HTMLInputElement>(null)
-InputHTMLAttributes<T> Набор HTML-атрибутов, которые можно передать в JSX
-<input> (placeholder, value, onChange, type, disabled и т.д.) Когда пишешь свой
-компонент-обёртку над <input> и хочешь принять стандартные пропсы без ручного
-перечисления HTMLFormElement Реальный <form>-элемент в DOM: методы .reset(),
-.submit(), свойство .elements В FormEvent<HTMLFormElement> /
-SubmitEvent<HTMLFormElement>, в useRef<HTMLFormElement>(null)
-FormHTMLAttributes<T> Атрибуты, которые можно передать в JSX <form> (onSubmit,
-action, method, noValidate) Свой компонент-обёртка над <form> HTMLButtonElement
-Реальный <button>-элемент: .disabled, .form, .type
-useRef<HTMLButtonElement>(null), события на кнопке ButtonHTMLAttributes<T>
-Атрибуты для JSX <button> (onClick, disabled, type) Свой компонент-кнопка
-HTMLSelectElement Реальный <select>-элемент: .value, .selectedIndex, .options
-ChangeEvent<HTMLSelectElement>, useRef<HTMLSelectElement>(null)
-SelectHTMLAttributes<T> Атрибуты для JSX <select> (onChange, multiple, value)
-Свой компонент-обёртка над <select>
-
-Правило выбора одной фразой: если работаешь с событием (ChangeEvent,
-SubmitEvent) или ref — используешь *Element. Если пишешь свой переиспользуемый
-компонент и расширяешь его пропсами родного HTML-тега (extends
-InputHTMLAttributes<...>) — используешь *Attributes.
-
-Пример на твоём компоненте, если бы ты решила сделать переиспользуемый
-<Input />:
-
-ts interface InputProps extends InputHTMLAttributes<HTMLInputElement> { label:
-string; }
-
-const Input: FC<InputProps> = ({ label, ...rest }) => (
-
-  <div>
-    <label>{label}</label>
-    <input {...rest} />
-  </div>
-);
-
-Здесь InputHTMLAttributes<HTMLInputElement> даёт тебе все стандартные пропсы
-<input> "бесплатно" — не нужно вручную писать value?: string; onChange?: ...;
-placeholder?: string и так далее. e.target === HTMLInputElement
-
-Тип Что разрешает Что запрещает JSX.Element Ровно один готовый React-элемент
-(<div/>, <Component/>) Строки, числа, null, undefined, boolean, массивы
-элементов, условный рендер типа {cond && <div/>} (там тип false | JSX.Element)
-ReactElement<P> То же самое, что JSX.Element, но с возможностью указать тип
-пропсов конкретного элемента (ReactElement<ButtonProps>) То же, что и
-JSX.Element ReactNode Вообще всё, что React способен отрендерить: элементы,
-строки, числа, null, undefined, boolean, массивы, фрагменты, порталы Практически
-ничего не запрещает — это "разрешить всё" PropsWithChildren<T> Не отдельный тип,
-а утилита: автоматически добавляет children?: ReactNode к твоему пропс-типу —
-
-Когда что использовать — примеры
-
-ReactNode — самый частый выбор для универсальных обёрток-контейнеров (layout,
-Card, Modal, Section-подобные компоненты), где реально может прийти что угодно:
-
-tsx interface CardProps { children: ReactNode; } // <Card>Просто текст</Card> —
-ок // <Card>{count}</Card> — ок, число // <Card><div/><div/></Card> — ок,
-несколько элементов
-
-Это самый распространённый выбор в реальных проектах для компонентов-обёрток.
-
-JSX.Element — когда компонент требует ровно один конкретный элемент и ты хочешь,
-чтобы TS запрещал передавать "мусор" (строку по ошибке, null из условного
-рендера). Твой PrivateRoute — идеальный пример такого случая: там принципиально
-важно, что придёт именно защищаемый маршрут, а не что-то ещё.
-
-PropsWithChildren<T> — сокращение, чтобы не писать children: ReactNode руками
-каждый раз:
-
-tsx type Props = PropsWithChildren<{ title: string }>; // эквивалентно type
-Props = { title: string; children?: ReactNode };
