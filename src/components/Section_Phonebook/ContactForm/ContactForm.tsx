@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FC, ChangeEvent, FormEvent, SubmitEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 import { MdPermIdentity } from 'react-icons/md';
 import { HiOutlineIdentification } from 'react-icons/hi';
@@ -8,36 +8,44 @@ import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { isPossiblePhoneNumber } from 'react-phone-number-input';
 
-const ContactForm = ({ addContact }) => {
+import { Contact, Gender } from '@/interfaces';
+
+interface ContactFormProps {
+  addContact: (newContact: Contact) => void;
+}
+
+const ContactForm = ({ addContact }: ContactFormProps) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [gender, setGender] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [phoneValid, setPhoneValid] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false); //коснулся ли пользователь поля телефона. Нужно, чтобы показывать ошибки или красную рамку только после того, как пользователь начал ввод.
 
-  const handleFormChange = e => {
+  const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     if (name === 'name') {
       setName(value);
     } else if (name === 'surname') {
       setSurname(value);
-    } else if (name === 'gender') {
-      setGender(value);
     } else return;
   };
 
-  const handlePhoneChange = phone => {
+  const handleGenderChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setGender(e.target.value as Gender);
+  };
+
+  const handlePhoneChange = (phone: string | undefined) => {
     const valid = phone ? isPossiblePhoneNumber(phone) : false;
     //isPossiblePhoneNumber - Проверяет, может ли введённый номер существовать реально, учитывая код страны, минимальную и максимальную длину.
 
-    setPhoneNumber(phone);
+    setPhoneNumber(phone ?? '');
     setPhoneValid(valid);
     setPhoneTouched(true);
   };
 
-  const handleFormSubmit = e => {
+  const handleFormSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!phoneValid) {
@@ -68,7 +76,7 @@ const ContactForm = ({ addContact }) => {
       return;
     }
 
-    const contactInfo = {
+    const contactInfo: Contact = {
       id: crypto.randomUUID(),
       name: name.trim(),
       surname: surname.trim(),
@@ -80,7 +88,7 @@ const ContactForm = ({ addContact }) => {
     addContact(contactInfo);
     toast.success('Contact added successfully!');
 
-    e.target.reset();
+    e.currentTarget.reset();
   };
 
   const isFormValid =
@@ -135,7 +143,7 @@ const ContactForm = ({ addContact }) => {
             type="radio"
             name="gender"
             value="male"
-            onChange={handleFormChange}
+            onChange={handleGenderChange}
             checked={gender === 'male'} //Определяет, выбрана ли эта опция, сравнивая текущее значение gender со значением радио
           />
           Male
@@ -146,7 +154,7 @@ const ContactForm = ({ addContact }) => {
             type="radio"
             name="gender"
             value="female"
-            onChange={handleFormChange}
+            onChange={handleGenderChange}
             checked={gender === 'female'} //Определяет, выбрана ли эта опция, сравнивая текущее значение gender со значением радио
           />
           Female

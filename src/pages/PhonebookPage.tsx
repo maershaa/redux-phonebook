@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, ChangeEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Section, Notification, Loader } from '@/components';
@@ -17,6 +17,7 @@ import {
 
 import { setFilter } from '@/redux/filterSlice';
 import { selectFilter } from '@/redux/selectors';
+import { Contact } from '@/interfaces';
 
 const PhonebookPage = () => {
   // RTK Query сам хранит: loading, error, cache, fetched data
@@ -32,17 +33,17 @@ const PhonebookPage = () => {
   const filter = useSelector(selectFilter);
 
   const addContactToPhonebook = useCallback(
-    newContact => {
+    (newContact: Contact) => {
       const normalizedName = newContact.name.trim().toLowerCase();
       const normalizedSurname = newContact.surname.trim().toLowerCase();
       const normalizedPhone = newContact.phoneNumber.trim();
 
       const isDuplicateNumber = contacts.some(
-        contact => contact.phoneNumber.trim() === normalizedPhone
+        (contact: Contact) => contact.phoneNumber.trim() === normalizedPhone
       );
 
       const isDuplicateNameSurname = contacts.some(
-        contact =>
+        (contact: Contact) =>
           contact.name.trim().toLowerCase() === normalizedName &&
           contact.surname.trim().toLowerCase() === normalizedSurname
       );
@@ -68,7 +69,7 @@ const PhonebookPage = () => {
   );
 
   const changeFilter = useCallback(
-    evt => {
+    (evt: ChangeEvent<HTMLInputElement>) => {
       const value = evt.currentTarget.value;
       dispatch(setFilter(value));
     },
@@ -81,7 +82,7 @@ const PhonebookPage = () => {
     const normalizedFilter = filter.toLowerCase().trim();
 
     return contacts.filter(
-      contact =>
+      (contact: Contact) =>
         contact.name.toLowerCase().includes(normalizedFilter) ||
         contact.surname.toLowerCase().includes(normalizedFilter) ||
         contact.phoneNumber.includes(normalizedFilter)
@@ -89,7 +90,7 @@ const PhonebookPage = () => {
   }, [contacts, filter]);
 
   const handleDeleteContact = useCallback(
-    id => {
+    (id: Contact['id']) => {
       deleteContact(id);
       toast.info(`Contact deleted`);
     },
@@ -104,7 +105,7 @@ const PhonebookPage = () => {
         </PhonebookArticle>
 
         <PhonebookArticle subtitle={'Contacts'}>
-          <PhonebookArticle>
+          <article>
             <Filter value={filter} onChange={changeFilter} />
 
             {isLoading ? (
@@ -117,7 +118,7 @@ const PhonebookPage = () => {
                 deleteContact={handleDeleteContact}
               />
             )}
-          </PhonebookArticle>
+          </article>
         </PhonebookArticle>
       </div>
     </Section>

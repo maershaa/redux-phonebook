@@ -1,5 +1,4 @@
 import { ToastContainer } from 'react-toastify';
-
 import { Header, Footer } from '@/components';
 import { Outlet } from 'react-router-dom';
 

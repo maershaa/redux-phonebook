@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Использовать возможности современного JavaScript.
+
+    "module": "ESNext", // Использовать современную систему модулей ES Modules.
+    "moduleResolution": "Bundler", // Искать файлы так же, как это делает Vite.
+
+    "jsx": "react-jsx", // Использовать новый JSX-трансформер React.
+
+    "strict": true, // Включить строгую проверку типов.
+
+    "baseUrl": ".", // Корень проекта для абсолютных импортов.
+    "paths": {
+      "@/*": ["src/*"] // Алиас: @ = папка src.
+    },
+
+    "allowJs": true, // Разрешить использовать .js вместе с .ts.
+    "checkJs": false, // Не проверять JavaScript-файлы на ошибки типов.
+
+    "resolveJsonModule": true, // Разрешить импортировать .json.
+
+    "isolatedModules": true, // Проверять каждый файл отдельно (требование Vite).
+
+    "noEmit": true, // Не создавать .js-файлы, сборкой занимается Vite.
+
+    "skipLibCheck": true, // Не проверять типы сторонних библиотек.
+
+    "ignoreDeprecations": "6.0" // Скрыть предупреждение о будущем устаревании baseUrl.
+  },
+
+  "include": ["src"] // Проверять TypeScript только в папке src.
+}

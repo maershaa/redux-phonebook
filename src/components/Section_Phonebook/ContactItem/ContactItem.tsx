@@ -14,13 +14,19 @@ import {
 
 import { useToggleFavoriteMutation } from '@/redux/services/contactsApi';
 
-const ContactItem = ({ contact, deleteContact }) => {
+import { Contact } from '@/interfaces';
+
+interface ContactItemProps {
+  contact: Contact;
+  deleteContact: (id: Contact['id']) => void;
+}
+
+const ContactItem = ({ contact, deleteContact }: ContactItemProps) => {
   const [toggleFavorite] = useToggleFavoriteMutation();
 
   const { id, name, surname, phoneNumber, gender, isFavorite } = contact;
 
-  const imgSrc =
-    gender === 'male' ? boy : gender === 'female' ? girl : unknown_gender;
+  const imgSrc = gender === 'male' ? boy : girl;
 
   const handleToggleFavorite = () => {
     toggleFavorite(contact);

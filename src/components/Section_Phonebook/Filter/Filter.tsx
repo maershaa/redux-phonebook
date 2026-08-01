@@ -1,7 +1,13 @@
 import { Wrapper, FilterInput } from './Filter.styled';
 import { IoIosSearch } from 'react-icons/io';
+import { ChangeEvent } from 'react';
 
-const Filter = ({ value, onChange }) => {
+interface FilterProps {
+  value: string;
+  onChange: (evt: ChangeEvent<HTMLInputElement>) => void;
+}
+
+const Filter = ({ value, onChange }: FilterProps) => {
   return (
     <Wrapper>
       <IoIosSearch />

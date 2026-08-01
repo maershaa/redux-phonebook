@@ -1,7 +1,10 @@
 import { BsFillPatchExclamationFill } from 'react-icons/bs';
 import { FeedbackNotification } from '@/components/Notification/Notification.styled';
 
-const Notification = ({ message }) => {
+interface NotificationProps {
+  message: string;
+}
+const Notification = ({ message }: NotificationProps) => {
   return (
     <FeedbackNotification>
       <BsFillPatchExclamationFill></BsFillPatchExclamationFill>

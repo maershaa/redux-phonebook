@@ -1,6 +1,12 @@
 import { ContactItem } from '@/components/Section_Phonebook/ContactItem/ContactItem';
+import { Contact } from '@/interfaces';
 
-const ContactList = ({ contacts, deleteContact }) => {
+interface ContactListProps {
+  contacts: Contact[];
+  deleteContact: (id: Contact['id']) => void;
+}
+
+const ContactList = ({ contacts, deleteContact }: ContactListProps) => {
   return (
     <ul>
       {contacts.map(contact => {
@@ -9,7 +15,7 @@ const ContactList = ({ contacts, deleteContact }) => {
             key={contact.id}
             deleteContact={deleteContact}
             contact={contact}
-          ></ContactItem>
+          />
         );
       })}
     </ul>
