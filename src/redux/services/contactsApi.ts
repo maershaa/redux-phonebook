@@ -1,4 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Contact } from '@/interfaces';
+
+type ContactsList = Contact[];
+type NewContact = Omit<Contact, 'id' | 'isFavorite'>;
 
 export const contactsApi = createApi({
   reducerPath: 'contactsApi', // ключ в redux store
@@ -9,13 +13,14 @@ export const contactsApi = createApi({
     // базовый URL для всех запросов
     baseUrl: 'https://65e95c314bb72f0a9c513d32.mockapi.io',
   }),
+
   endpoints: builder => ({
-    getContacts: builder.query({
+    getContacts: builder.query<ContactsList, void>({
       query: () => `/contacts`,
       providesTags: ['Contact'], // помечаем cache тегом Contact чтобы mutations потом смогли инвалидировать этот cache
     }),
 
-    addContact: builder.mutation({
+    addContact: builder.mutation<Contact, NewContact>({
       query: newContact => ({
         url: `/contacts`,
         method: 'POST',
@@ -25,7 +30,7 @@ export const contactsApi = createApi({
       // RTK Query автоматически сделает refetch
     }),
 
-    deleteContact: builder.mutation({
+    deleteContact: builder.mutation<{ id: string }, string>({
       query: id => ({
         url: `/contacts/${id}`,
         method: 'DELETE',
@@ -33,7 +38,7 @@ export const contactsApi = createApi({
       invalidatesTags: ['Contact'], // обновляем cache после удаления
     }),
 
-    toggleFavorite: builder.mutation({
+    toggleFavorite: builder.mutation<Contact, Contact>({
       query: contact => {
         const { id, isFavorite } = contact;
         return {

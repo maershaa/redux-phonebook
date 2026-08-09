@@ -8,7 +8,7 @@ import { theme } from '@/assets/styles/theme.js';
 import GlobalStyles from '@/assets/styles/global.jsx';
 
 import App from './App.jsx';
-import store from '@/redux/store';
+import { store } from '@/redux/store';
 
 const root = document.getElementById('root') as HTMLInputElement;
 

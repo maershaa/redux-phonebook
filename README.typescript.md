@@ -1,8 +1,5 @@
 # 🚀 Миграция React + Vite проекта с JavaScript на TypeScript
 
-> Не нужно переписывать весь проект за один день. JavaScript и TypeScript могут
-> спокойно жить вместе, пока ты постепенно переносишь файлы.
-
 ---
 
 ## Содержание
@@ -25,6 +22,8 @@
 16. [React: children — JSX.Element vs ReactNode](#react-children--jsxelement-vs-reactnode)
 17. [Установка TypeScript в проект](#установка-typescript)
 18. [Практика: порядок переименования файлов](#порядок-переименования-файлов-на-практике)
+19. [Redux Toolkit: типизация slice, store, селекторов](#redux-toolkit-типизация-slice-store-селекторов)
+20. [RTK Query: типизация API](#rtk-query-типизация-api)
 
 ---
 
@@ -1022,7 +1021,8 @@ npx tsc --init
     "module": "ESNext", // Использовать ES Modules.
     "moduleResolution": "Bundler", // Искать модули так же, как Vite.
 
-    "jsx": "react-jsx", // Новый JSX-трансформер React.
+    "jsx": "react-jsx", // Новый JSX-трансформер React (не требует импортировать React в каждом файле).
+    "jsxImportSource": "@emotion/react", // Указывает TS брать типы JSX из Emotion, а не из React — нужно для корректной типизации styled-компонентов и css-пропа.
 
     "strict": true, // Строгая проверка типов.
 
@@ -1228,10 +1228,206 @@ Button.jsx → Button.tsx
 
 ## Styled Components
 
-Файлы вида `Header.styled.jsx` можно постепенно переименовывать в
-`Header.styled.ts` или `Header.styled.tsx`.
+# Настройка типизированной темы для Emotion (TypeScript)
 
-Если внутри только стили без JSX-разметки, то обычно используют `.styled.ts`.
+Инструкция для проектов на React + TypeScript + Emotion (`@emotion/styled`,
+`@emotion/react`). Актуально и для `styled-components` — отличия отмечены
+отдельно.
+
+Проблема, которую решаем: по умолчанию параметр `theme` в
+`styled.div\`...\`` типизирован пустым служебным интерфейсом библиотеки (`Theme`у emotion /`DefaultTheme` у styled-components). Поэтому TS не видит твои кастомные поля (`colors`, `spacing`
+и т.д.), даже если объект темы у тебя правильный и всё работает в рантайме.
+
+Решение — **declaration merging** (слияние объявлений): мы "дополняем" служебный
+интерфейс библиотеки своими полями.
+
+---
+
+## Шаг 1. Выносим тип темы в отдельный файл и типизируем сам объект темы
+
+Заводим отдельный файл с интерфейсом (это единый источник правды для формы темы
+— используется и в объекте темы, и в module augmentation на шаге 2):
+
+```ts
+// src/theme/theme.types.ts
+
+export interface Theme {
+  colors: {
+    background: { [key: string]: string };
+    text: { [key: string]: string };
+    accent: { [key: string]: string };
+    decorations: { [key: string]: string };
+    border: { [key: string]: string };
+  };
+  shadows: { [key: string]: string };
+  radii: { [key: string]: string };
+  spacing: { [key: string]: string };
+  fonts: { [key: string]: string };
+}
+```
+
+Применяем этот тип к самому объекту темы:
+
+```ts
+// src/theme/theme.ts
+import { Theme } from './theme.types';
+
+export const theme: Theme = Object.freeze({
+  colors: {
+    background: { main: '#fff' },
+    text: { primary: '#4f46e5' },
+    accent: { blue: '#667eea' },
+    decorations: { star: '#FFE066' },
+    border: { light: '#E0D9F0' },
+  },
+  shadows: { card: '0px 4px 12px rgba(0,0,0,0.08)' },
+  radii: { small: '6px' },
+  spacing: { sm: '8px' },
+  fonts: { main: "'Inter', sans-serif" },
+});
+```
+
+> Зачем отдельный файл `theme.types.ts`, а не интерфейс прямо в `theme.ts`?
+> Чтобы на шаге 2 импортировать один и тот же тип, а не дублировать его
+> структуру вручную ещё раз в `emotion.d.ts`.
+
+---
+
+## Шаг 2. Расширяем служебный тип библиотеки (module augmentation)
+
+Создаём файл `emotion.d.ts` (можно и `.ts` — но `.d.ts` — общепринятое
+соглашение для файлов, которые только объявляют типы и не содержат
+runtime-кода).
+
+```ts
+// src/emotion.d.ts
+import '@emotion/react';
+import type { Theme as AppTheme } from from './theme/theme.types';
+
+declare module '@emotion/react' {
+  export interface Theme extends AppTheme {}
+}
+```
+
+**Для `styled-components` вместо этого:**
+
+```ts
+// src/styled.d.ts
+import 'styled-components';
+import { Theme as AppTheme } from './theme/theme.types';
+
+declare module 'styled-components' {
+  export interface DefaultTheme extends AppTheme {}
+}
+```
+
+### Важно проверить
+
+- [ ] Файл лежит внутри `src` (или другой директории, указанной в `include`
+      секции `tsconfig.json`).
+- [ ] В начале файла есть `import '@emotion/react'` (или `'styled-components'`)
+      — без него файл не считается модулем, и augmentation не сработает.
+- [ ] Используется именно `interface`, а не `type` — только интерфейсы
+      поддерживают declaration merging.
+
+---
+
+## Шаг 3. Переименовываем файлы стилей `.js`/`.jsx` → `.ts`
+
+Файлы вида `Footer.styled.js` → `Footer.styled.ts`.
+
+Если файл со styled-компонентами содержит **только** вызовы `styled.xxx` без
+JSX-разметки внутри самого файла — достаточно `.ts`. Расширение `.tsx` нужно
+только там, где в файле есть непосредственно JSX-синтаксис (`<div>...</div>` вне
+шаблонных строк styled).
+
+После переименования:
+
+```ts
+// src/components/Footer/Footer.styled.ts
+import styled from '@emotion/styled';
+
+export const FooterWrapper = styled.footer`
+  padding: 0 ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radii.medium};
+`;
+```
+
+Теперь `theme` в колбэке автоматически имеет тип из шага 2 — автодополнение и
+проверка типов работают без ошибки
+`Property 'spacing' does not exist on type 'Theme'`.
+
+---
+
+## Как проверить, что всё подключилось
+
+1. Наведи курсор на `theme` внутри `({ theme }) => theme...` в любом
+   styled-файле.
+2. VSCode должен показать твой полный тип (`colors`, `spacing`, `radii`, ...), а
+   не пустой `{}` / `DefaultTheme`.
+3. Попробуй набрать `theme.` внутри шаблонной строки — должно появиться
+   автодополнение по твоим реальным полям.
+
+---
+
+## Полиморфный `as` prop у styled-компонентов
+
+Частая ошибка при попытке отрендерить styled-компонент как другой элемент —
+например, `<Link>` из `react-router-dom` вместо обычного `<a>`:
+
+```tsx
+const Logo = styled.a`
+  /* ... */
+`;
+
+<Logo as={Link} to="/" aria-label="Logo of the project">
+```
+
+TypeScript ругается примерно так:
+
+> Свойство "to" не существует в типе "... & AnchorHTMLAttributes<...>"
+
+**Почему так происходит.** Тип пропсов styled-компонента фиксируется в момент
+его создания — `styled.a` знает только про
+`AnchorHTMLAttributes<HTMLAnchorElement>` (и `theme`). Проп `as` меняет элемент
+в рантайме, но статическая типизация `styled.a` про это ничего не знает и не
+подтягивает автоматически пропсы компонента, который передан в `as` (в данном
+случае — `LinkProps` из `react-router-dom`, откуда и берётся `to`). Полиморфизм
+в рантайме есть, а в типах — нет, если не подключить его отдельно.
+
+**Решение — стилизовать сам компонент, а не элемент.** Вместо `styled.a` с
+последующим `as={Link}` компонент оборачивается напрямую:
+
+```tsx
+import { Link } from 'react-router-dom';
+import styled from '@emotion/styled';
+
+const Logo = styled(Link)`
+  /* те же стили */
+`;
+```
+
+```tsx
+<Logo to="/" aria-label="Logo of the project">
+```
+
+Когда `styled()` оборачивает не строку тега (`'a'`), а сам React-компонент
+(`Link`), он забирает тип пропсов именно у него — то есть `Logo` автоматически
+знает про `to`, `replace`, `state` и все остальные пропсы `Link`, без `as` и без
+ручных дженериков. Это и есть стандартный подход: `as` в styled-components/
+Emotion удобен в рантайме, но для типобезопасности надёжнее заранее решить,
+каким компонентом рендерится styled-обёртка, и обернуть именно его.
+
+```
+src/
+├─ theme/
+│  ├─ theme.types.ts   ← интерфейс Theme (единый источник правды)
+│  └─ theme.ts         ← сам объект темы, типизирован через Theme
+├─ emotion.d.ts         ← declaration merging (module augmentation)
+└─ components/
+   └─ Footer/
+      └─ Footer.styled.ts
+```
 
 ## Обычные файлы
 
@@ -1280,3 +1476,293 @@ const Button = ({ title }: ButtonProps) => {
 
 И так — файл за файлом, ты постепенно добавляешь типы по мере того, как
 TypeScript их запрашивает.
+
+# Redux Toolkit: типизация slice, store, селекторов
+
+## Типизация slice
+
+Slice состоит из трёх вещей, которые нужно типизировать: форма состояния,
+`action.payload` в каждом редьюсере и (по умолчанию) сам `initialState`.
+
+```ts
+interface FilterState {
+  value: string;
+}
+
+const initialState: FilterState = { value: '' };
+
+const filterSlice = createSlice({
+  name: 'filter',
+  initialState,
+  reducers: {
+    setFilter: (state, action: PayloadAction<string>) => {
+      state.value = action.payload;
+    },
+  },
+});
+```
+
+`PayloadAction<T>` — дженерик из Redux Toolkit, где `T` — тип того, что лежит в
+`action.payload`. Без него `action` имел бы тип `AnyAction`, и `action.payload`
+был бы `any` — то есть можно было бы присвоить что угодно куда угодно без единой
+ошибки компилятора.
+
+Если состояние вложенное — сущность (например, пользователя) удобнее выносить в
+отдельный `interface`, а не описывать инлайном. Тогда её можно переиспользовать
+в других местах — например, в возвращаемом типе селектора:
+
+```ts
+interface AuthUser {
+  login: string;
+  password: string;
+}
+
+interface AuthState {
+  isLoggedIn: boolean;
+  user: AuthUser | null;
+}
+```
+
+Тип и `interface`/`type`, который его описывает, принято называть в `PascalCase`
+(`AuthState`, `FilterState`) — так их сразу видно среди обычных переменных и
+функций.
+
+---
+
+## `RootState` и `AppDispatch`
+
+Это два ключевых типа для любого Redux + TypeScript проекта. `RootState` — тип
+всего состояния приложения (нужен селекторам и `useSelector`). `AppDispatch` —
+тип функции `dispatch` конкретно этого store (нужен для типизированного
+`useDispatch`, особенно когда в middleware добавлены thunk-и или RTK Query).
+
+Оба типа не пишутся вручную — они выводятся автоматически из самого store через
+`ReturnType` и `typeof`:
+
+```ts
+import { configureStore } from '@reduxjs/toolkit';
+import { contactsApi } from '@/redux/services/contactsApi';
+import authReducer from './authSlice';
+import filterReducer from './filterSlice';
+
+const store = configureStore({
+  reducer: {
+    [contactsApi.reducerPath]: contactsApi.reducer,
+    filter: filterReducer,
+    auth: authReducer,
+  },
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware().concat(contactsApi.middleware),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
+export default store;
+```
+
+Почему именно так:
+
+- `store.getState` — это функция, которая возвращает объект состояния.
+  `ReturnType<typeof store.getState>` читается как «тип того, что возвращает эта
+  функция» — то есть точная форма всего state, автоматически собранная из всех
+  редьюсеров сразу. Если завтра добавится новый slice, `RootState` обновится
+  сам, без ручного дописывания.
+- `typeof store.dispatch` берёт тип самой функции `dispatch` этого конкретного
+  store — со всеми возможностями, которые добавляют подключённые middleware (в
+  том числе RTK Query).
+- Чтобы `typeof store...` вообще сработал, store должен быть отдельной
+  переменной, а не результатом, который сразу улетает в `export default` —
+  `typeof` ссылается на переменную по имени, ссылаться не на что, если имени
+  нет. Дальше `RootState` импортируется туда, где нужно знать форму state — в
+  первую очередь в селекторы:
+
+```ts
+// selectors.ts
+import type { RootState } from './store';
+
+export const selectUser = (state: RootState) => state.auth.user;
+export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
+export const selectFilter = (state: RootState) => state.filter.value;
+```
+
+Использован `import type`, а не обычный `import` — потому что из `store.ts`
+нужен только тип, а не что-то, что реально выполняется в рантайме. `import type`
+гарантированно удаляется на этапе сборки: в финальном JS-файле такого импорта
+вообще не будет. Это полезно в двух смыслах: во-первых, чётко видно по коду, что
+зависимость чисто «типовая»; во-вторых, это снимает любые опасения по поводу
+циклических импортов между `store.ts` и файлами, которые импортируют из него
+`RootState`, — стирающийся при сборке импорт физически не может зациклиться в
+рантайме.
+
+С типизированными селекторами `state` внутри селектора получает автодополнение и
+защиту от опечаток в названиях полей, а всё, что берёт значение через
+`useSelector(selectUser)`, автоматически получает правильный тип без ручных
+аннотаций.
+
+---
+
+## Типизированные хуки `useAppDispatch` / `useAppSelector`
+
+`useDispatch` и `useSelector` из `react-redux` по умолчанию ничего не знают про
+конкретный store конкретного проекта — `dispatch` без дженерика не в курсе про
+thunk-и и middleware, а `state` внутри `useSelector` без дженерика — `any`.
+
+Стандартный подход — один раз завести собственные типизированные версии этих
+хуков и дальше по всему проекту использовать только их:
+
+```ts
+// src/redux/hooks.ts
+import { useDispatch, useSelector } from 'react-redux';
+import type { TypedUseSelectorHook } from 'react-redux';
+import type { RootState, AppDispatch } from './store';
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+```
+
+```tsx
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { selectUser } from '@/redux/selectors';
+
+const dispatch = useAppDispatch();
+const user = useAppSelector(selectUser); // сразу правильный тип, без generics вручную
+```
+
+Плюс такого подхода: типизация делается один раз в `hooks.ts`, а не повторяется
+дженериками в каждом компоненте, который обращается к store.
+
+---
+
+# RTK Query: типизация API
+
+## `builder.query<ResultType, ArgType>` и `builder.mutation<ResultType, ArgType>`
+
+Каждый эндпоинт в `createApi` — это дженерик с двумя параметрами: что запрос
+**возвращает** и что он **принимает как аргумент**. Указывать их нужно всегда
+явно — если пропустить, TypeScript подставит `unknown`, и внутри `query` у
+аргумента не будет вообще никаких известных полей, а результат запроса нельзя
+будет использовать напрямую без дополнительных проверок.
+
+builder.mutation<A, B> — это как функция с двумя "слотами" для типов, и порядок
+фиксированный:
+
+Первый параметр (A) — что вернёт сервер после выполнения запроса (то, что
+окажется в data после успешного ответа). Второй параметр (B) — что ты передаёшь
+в саму мутацию, когда её вызываешь в компоненте.
+
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Contact } from '@/interfaces';
+
+type ContactsList = Contact[];
+type NewContact = Omit<Contact, 'id' | 'isFavorite'>;
+
+export const contactsApi = createApi({
+  reducerPath: 'contactsApi',
+  tagTypes: ['Contact'],
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'https://65e95c314bb72f0a9c513d32.mockapi.io',
+  }),
+  endpoints: builder => ({
+    getContacts: builder.query<ContactsList, void>({
+      query: () => `/contacts`,
+      providesTags: ['Contact'],
+    }),
+
+    addContact: builder.mutation<Contact, NewContact>({
+      query: newContact => ({
+        url: `/contacts`,
+        method: 'POST',
+        body: newContact,
+      }),
+      invalidatesTags: ['Contact'],
+    }),
+
+    deleteContact: builder.mutation<{ id: string }, string>({
+      query: id => ({
+        url: `/contacts/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Contact'],
+    }),
+
+    toggleFavorite: builder.mutation<Contact, Contact>({
+      query: contact => {
+        const { id, isFavorite } = contact;
+        return {
+          url: `/contacts/${id}`,
+          method: 'PUT',
+          body: { ...contact, isFavorite: !isFavorite },
+        };
+      },
+      invalidatesTags: ['Contact'],
+    }),
+  }),
+});
+
+export const {
+  useGetContactsQuery,
+  useAddContactMutation,
+  useDeleteContactMutation,
+  useToggleFavoriteMutation,
+} = contactsApi;
+```
+
+Несколько моментов, почему это выглядит именно так:
+
+- Когда запросу не нужен аргумент (`getContacts`), вторым параметром ставится
+  `void`, а не `{}`. `{}` в TypeScript означает «почти любое значение, кроме
+  `null`/`undefined`» — это не «пустой объект» и точно не «аргументов нет».
+  `void` — это явно «аргумент не нужен», и вызвать `useGetContactsQuery()` с
+  каким-то мусором внутри уже не получится.
+- Тип аргумента мутации — это то, что реально приходит в `query`. Для удаления
+  приходит просто `id` (строка), поэтому вторым параметром стоит `string`, а не
+  весь объект контакта.
+- Для `addContact` аргумент — не `Contact`, а
+  `Omit<Contact, 'id' | 'isFavorite'>`. `Omit<T, Keys>` — Utility Type, который
+  берёт тип `T` и убирает из него перечисленные поля. `id` и `isFavorite`
+  вычисляются на клиенте (`crypto.randomUUID()`, `false` по умолчанию) и не
+  приходят из формы — значит, требовать их в аргументе было бы неверно. Всё, что
+  возвращают сгенерированные хуки, уже типизировано на основе этих дженериков и
+  не требует ручной аннотации:
+
+```ts
+const { data, isLoading, isError } = useGetContactsQuery();
+// data: ContactsList | undefined
+```
+
+---
+
+## Тегирование по id, а не только по типу
+
+Это уже не про TypeScript, а про сам RTK Query — но раз речь про то, «как на
+проде», стоит знать. Один общий тег на весь список (`providesTags: ['Contact']`,
+`invalidatesTags: ['Contact']`) означает, что после **любой** мутации весь
+список запрашивается заново целиком.
+
+Более точный вариант — тегировать каждый элемент отдельно по `id`, тогда после
+мутации перезапрашивается только изменённая запись, а не весь список:
+
+```ts
+getContacts: builder.query<ContactsList, void>({
+  query: () => `/contacts`,
+  providesTags: result =>
+    result
+      ? [
+          ...result.map(({ id }) => ({ type: 'Contact' as const, id })),
+          { type: 'Contact' as const, id: 'LIST' },
+        ]
+      : [{ type: 'Contact' as const, id: 'LIST' }],
+}),
+
+toggleFavorite: builder.mutation<Contact, Contact>({
+  query: contact => ({ /* ... */ }),
+  invalidatesTags: (result, error, contact) => [
+    { type: 'Contact', id: contact.id },
+  ],
+}),
+```
+
+Для небольшого списка разницы не видно, но при росте количества данных это
+экономит лишние запросы к серверу.

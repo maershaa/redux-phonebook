@@ -6,6 +6,7 @@
     "moduleResolution": "Bundler", // Искать файлы так же, как это делает Vite.
 
     "jsx": "react-jsx", // Использовать новый JSX-трансформер React.
+    "jsxImportSource": "@emotion/react",
 
     "strict": true, // Включить строгую проверку типов.
 

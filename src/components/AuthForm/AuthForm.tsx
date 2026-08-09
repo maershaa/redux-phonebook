@@ -1,18 +1,30 @@
+import { useReducer, SubmitEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FormWrapper } from './AuthForm.styled';
-import { useReducer } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { logIn } from '@/redux/authSlice.js';
 import { toast } from 'react-toastify';
+
 import { selectUser, selectIsLoggedIn } from '@/redux/selectors';
 
+import { FormWrapper } from './AuthForm.styled';
+import { logIn } from '@/redux/authSlice';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+
+interface AuthFormState {
+  login: string;
+  password: string;
+}
+
+type AuthFormAction =
+  | { type: 'setLogin'; payload: string }
+  | { type: 'setPassword'; payload: string }
+  | { type: 'reset' };
+
 // Редьюсер и состояние для локального состояния формы
-const initialState = {
+const initialState: AuthFormState = {
   login: '',
   password: '',
 };
 
-const reducer = (state, action) => {
+const reducer = (state: AuthFormState, action: AuthFormAction) => {
   switch (action.type) {
     case 'setLogin':
       return {
@@ -34,17 +46,17 @@ const reducer = (state, action) => {
 //Компонент
 const AuthForm = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const user = useSelector(selectUser);
-  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const user = useAppSelector(selectUser);
+  const isLoggedIn = useAppSelector(selectIsLoggedIn);
 
   const [formState, dispatchFormState] = useReducer(reducer, initialState);
 
   const isFormValid =
     formState.login.trim() !== '' && formState.password.trim() !== '';
 
-  const handleAuth = evt => {
+  const handleAuth = (evt: SubmitEvent<HTMLFormElement>) => {
     evt.preventDefault();
 
     if (isLoggedIn) {

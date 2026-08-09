@@ -1,6 +1,7 @@
 import { Global, css, useTheme } from '@emotion/react';
 import emotionReset from 'emotion-reset';
 import bgImg from '@/assets/images/background.png';
+import type { Theme } from '@/interfaces';
 
 /**
  * 1. Выносим все глобальные стили в функцию,
@@ -8,7 +9,7 @@ import bgImg from '@/assets/images/background.png';
  * 2. Внутри css используем ТОЛЬКО готовые значения,
  *    никаких функций и props.
  */
-const globalStyles = theme => css`
+const globalStyles = (theme: Theme) => css`
   /* готовый reset от emotion */
   ${emotionReset}
 

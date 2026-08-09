@@ -1,17 +1,17 @@
 import { HeaderWrapper, Logo } from '@/components/Header/Heder.styled';
 import { Button } from '@/components';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { logOut } from '@/redux/authSlice';
 import { toast } from 'react-toastify';
 import { selectUser, selectIsLoggedIn } from '@/redux/selectors';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
 const Header = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const user = useSelector(selectUser);
-  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const user = useAppSelector(selectUser);
+  const isLoggedIn = useAppSelector(selectIsLoggedIn);
 
   const handleLogInBtnClick = () => {
     navigate('/auth');
@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <HeaderWrapper>
       <nav className="nav">
-        <Logo as={Link} to="/" aria-label="Logo of the project">
+        <Logo to="/" aria-label="Logo of the project">
           Auth <span>&</span> Phonebook
         </Logo>
         <ul className="nav-list">

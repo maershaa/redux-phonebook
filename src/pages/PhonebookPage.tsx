@@ -1,5 +1,4 @@
 import { useMemo, useCallback, ChangeEvent } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Section, Notification, Loader } from '@/components';
 import {
@@ -18,6 +17,7 @@ import {
 import { setFilter } from '@/redux/filterSlice';
 import { selectFilter } from '@/redux/selectors';
 import { Contact } from '@/interfaces';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
 const PhonebookPage = () => {
   // RTK Query сам хранит: loading, error, cache, fetched data
@@ -28,9 +28,9 @@ const PhonebookPage = () => {
   const [addContact] = useAddContactMutation();
   const [deleteContact] = useDeleteContactMutation();
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const filter = useSelector(selectFilter);
+  const filter = useAppSelector(selectFilter);
 
   const addContactToPhonebook = useCallback(
     (newContact: Contact) => {

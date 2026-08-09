@@ -1,4 +1,6 @@
-export const theme = Object.freeze({
+import { Theme } from '@/interfaces';
+
+export const theme: Theme = Object.freeze({
   colors: {
     // Основные фоны
     background: {

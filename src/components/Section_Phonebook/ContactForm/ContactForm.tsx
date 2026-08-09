@@ -1,4 +1,4 @@
-import { FC, ChangeEvent, FormEvent, SubmitEvent, useState } from 'react';
+import { ChangeEvent, SubmitEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 import { MdPermIdentity } from 'react-icons/md';
 import { HiOutlineIdentification } from 'react-icons/hi';
@@ -18,7 +18,7 @@ const ContactForm = ({ addContact }: ContactFormProps) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [gender, setGender] = useState<Gender | ''>('');
   const [phoneValid, setPhoneValid] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false); //коснулся ли пользователь поля телефона. Нужно, чтобы показывать ошибки или красную рамку только после того, как пользователь начал ввод.
 

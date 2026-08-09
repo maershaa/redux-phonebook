@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { Link } from 'react-router-dom';
 
 const HeaderWrapper = styled.header`
   width: 100%;
@@ -114,7 +115,8 @@ const HeaderWrapper = styled.header`
     }
   } */
 `;
-const Logo = styled.a`
+
+const Logo = styled(Link)`
   font-family: ${({ theme }) => theme.fonts.heading};
   font-size: 22px;
   font-weight: 800;
